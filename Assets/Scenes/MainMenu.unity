@@ -361,9 +361,6 @@ MonoBehaviour:
   moveSpeed: 15
   laneWidth: 1.5
   jumpForce: 5
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 8
 --- !u!54 &1355476245
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -410,8 +407,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 0.79768056, z: 1}
+  m_Center: {x: 0, y: 0.10115972, z: 0}
 --- !u!23 &1355476247
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -508,11 +505,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roadSegmentPrefab: {fileID: 8401255838588372505, guid: 032fbbae4d9e94846b0e2b22869f963b, type: 3}
   poolSize: 10
-  segmentLength: 20
+  segmentLength: 30
   smallObstaclePrefab: {fileID: 3953708870141361787, guid: 6af11c1cc28fe694ab1b4188b80fb2dc, type: 3}
   bigObstaclePrefab: {fileID: 6154505713579955213, guid: 74fb3d08445e53b448305fcf5e76eefa, type: 3}
-  obstacleChance: 0.5
-  safeDistance: 5
+  obstacleChance: 0.6
+  safeDistance: 2
 --- !u!4 &2011956066
 Transform:
   m_ObjectHideFlags: 0

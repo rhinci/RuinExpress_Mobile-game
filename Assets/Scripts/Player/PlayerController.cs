@@ -7,12 +7,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float laneWidth = 1.5f;
 
     [Header("Прыжок")]
-    [SerializeField] private float jumpForce = 5f;
-    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float jumpForce = 7f;
 
     private int currentLane = 1;
     private Vector3 targetPosition;
     private Rigidbody rb;
+    private bool isGrounded;
+    private bool isInvincible = false;
+    private float invincibleTime = 0f;
 
     void Start()
     {
@@ -26,6 +28,10 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+
+        Debug.DrawRay(transform.position, Vector3.down * 0.7f, isGrounded ? Color.green : Color.red);
+
+
         // Движение влево
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -40,8 +46,11 @@ public class PlayerController : MonoBehaviour
             UpdateTargetPosition();
         }
 
+        // Проверка земли (луч вниз)
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, 0.4f);
+
         // Прыжок
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow)) && IsGrounded())
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow)) && isGrounded)
         {
             rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
         }
@@ -51,7 +60,18 @@ public class PlayerController : MonoBehaviour
         newPos.x = Mathf.Lerp(transform.position.x, targetPosition.x, Time.deltaTime * 15f);
         transform.position = newPos;
 
+        // Автоматическое движение вперёд
         transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
+
+        // Обновление неуязвимости
+        if (isInvincible)
+        {
+            invincibleTime -= Time.deltaTime;
+            if (invincibleTime <= 0)
+            {
+                isInvincible = false;
+            }
+        }
     }
 
     void UpdateTargetPosition()
@@ -60,19 +80,32 @@ public class PlayerController : MonoBehaviour
         targetPosition = new Vector3(xPos, transform.position.y, transform.position.z);
     }
 
-    bool IsGrounded()
-    {
-        // Немного расширяем луч вниз
-        return Physics.Raycast(transform.position, Vector3.down, 0.6f, groundLayer);
-    }
-
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Obstacle"))
         {
-            Debug.Log("Столкновение с препятствием! Проигрыш");
-            // Пока просто остановим игру
+            // Проверяем большое или маленькое
+            float obstacleHeight = collision.gameObject.transform.localScale.y;
+            bool isBig = obstacleHeight > 1f;
+
+            if (!isBig && !isGrounded)
+            {
+                // Маленькое препятствие + игрок в воздухе = успех
+                Debug.Log("Перепрыгнул!");
+                Destroy(collision.gameObject);
+                return;
+            }
+
+            if (isInvincible) return;
+
+            Debug.Log("Проигрыш!");
             Time.timeScale = 0;
         }
+    }
+
+    public void MakeInvincible(float duration)
+    {
+        isInvincible = true;
+        invincibleTime = duration;
     }
 }
