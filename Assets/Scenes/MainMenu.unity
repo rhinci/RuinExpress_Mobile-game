@@ -324,6 +324,7 @@ MonoBehaviour:
   target: {fileID: 1355476249}
   offset: {x: 0, y: 4, z: -6}
   smoothSpeed: 5
+  lookAheadDistance: 5
 --- !u!1 &1355476243
 GameObject:
   m_ObjectHideFlags: 0
@@ -340,7 +341,7 @@ GameObject:
   - component: {fileID: 1355476244}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -357,7 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47f17e7ce41c388498abb0a5134ad35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
+  moveSpeed: 15
   laneWidth: 1.5
   jumpForce: 5
   groundLayer:
@@ -488,7 +489,7 @@ GameObject:
   - component: {fileID: 2011956065}
   m_Layer: 0
   m_Name: RoadManager
-  m_TagString: Player
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -510,7 +511,8 @@ MonoBehaviour:
   segmentLength: 20
   smallObstaclePrefab: {fileID: 3953708870141361787, guid: 6af11c1cc28fe694ab1b4188b80fb2dc, type: 3}
   bigObstaclePrefab: {fileID: 6154505713579955213, guid: 74fb3d08445e53b448305fcf5e76eefa, type: 3}
-  obstacleChance: 0.3
+  obstacleChance: 0.5
+  safeDistance: 5
 --- !u!4 &2011956066
 Transform:
   m_ObjectHideFlags: 0

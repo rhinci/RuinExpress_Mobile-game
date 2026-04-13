@@ -50,6 +50,8 @@ public class PlayerController : MonoBehaviour
         Vector3 newPos = transform.position;
         newPos.x = Mathf.Lerp(transform.position.x, targetPosition.x, Time.deltaTime * 15f);
         transform.position = newPos;
+
+        transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
     }
 
     void UpdateTargetPosition()
@@ -62,5 +64,15 @@ public class PlayerController : MonoBehaviour
     {
         // Немного расширяем луч вниз
         return Physics.Raycast(transform.position, Vector3.down, 0.6f, groundLayer);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            Debug.Log("Столкновение с препятствием! Проигрыш");
+            // Пока просто остановим игру
+            Time.timeScale = 0;
+        }
     }
 }
