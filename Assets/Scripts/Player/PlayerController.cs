@@ -4,7 +4,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Движение")]
     [SerializeField] private float moveSpeed = 10f;
-    [SerializeField] private float laneWidth = 2f;
+    [SerializeField] private float laneWidth = 1.5f;
 
     [Header("Прыжок")]
     [SerializeField] private float jumpForce = 5f;
