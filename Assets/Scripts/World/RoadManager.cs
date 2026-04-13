@@ -5,21 +5,23 @@ public class RoadManager : MonoBehaviour
 {
     [Header("Сегменты дороги")]
     [SerializeField] private GameObject roadSegmentPrefab;
-    [SerializeField] private int poolSize = 10;
+    [SerializeField] private int poolSize = 15;
     [SerializeField] private float segmentLength = 20f;
 
     [Header("Препятствия")]
     [SerializeField] private GameObject smallObstaclePrefab;
     [SerializeField] private GameObject bigObstaclePrefab;
     [SerializeField] private float obstacleChance = 0.3f;
-    [SerializeField] private float safeDistance = 5f; // Безопасная дистанция без препятствий
+    [SerializeField] private float safeDistance = 50f;
 
     private List<GameObject> roadPool = new List<GameObject>();
     private float lastSpawnZ = 0f;
     private Transform player;
-    private float nextSpawnThreshold = 0f;
-    private float totalSpawnedDistance = 0f; // Считаем, сколько метров дороги уже создано
+    private float totalSpawnedDistance = 0f;
     private bool safeZonePassed = false;
+
+    [Header("Настройки генерации")]
+    [SerializeField] private int segmentsAhead = 2; // Должно быть сгенерировано впереди
 
     void Start()
     {
@@ -32,30 +34,39 @@ public class RoadManager : MonoBehaviour
             roadPool.Add(segment);
         }
 
-        // Спавним первые 3 сегмента без препятствий
-        for (int i = 0; i < 3; i++)
+        // Спавним начальные сегменты (без препятствий)
+        for (int i = 0; i < segmentsAhead + 1; i++)
         {
-            SpawnSegment(true); // true = безопасный сегмент без препятствий
+            SpawnSegment(true);
         }
-
-        nextSpawnThreshold = segmentLength * 2;
     }
 
     void Update()
     {
         if (player == null) return;
 
-        if (player.position.z > nextSpawnThreshold)
+        // Считаем, сколько активных сегментов впереди игрока
+        int activeSegmentsAhead = 0;
+        foreach (var segment in roadPool)
+        {
+            if (segment.activeSelf && segment.transform.position.z > player.position.z)
+            {
+                activeSegmentsAhead++;
+            }
+        }
+
+        // Если впереди меньше чем segmentsAhead, спавним новый
+        if (activeSegmentsAhead < segmentsAhead)
         {
             SpawnSegment();
-            nextSpawnThreshold += segmentLength;
         }
 
         // Удаляем сегменты позади игрока
         foreach (var segment in roadPool)
         {
-            if (segment.activeSelf && segment.transform.position.z < player.position.z - segmentLength * 2)
+            if (segment.activeSelf && segment.transform.position.z < player.position.z - segmentLength)
             {
+                // Удаляем препятствия
                 foreach (Transform child in segment.transform)
                 {
                     if (child.CompareTag("Obstacle"))
@@ -69,7 +80,15 @@ public class RoadManager : MonoBehaviour
     void SpawnSegment(bool isSafe = false)
     {
         GameObject segment = roadPool.Find(s => !s.activeSelf);
-        if (segment == null) return;
+        if (segment == null)
+        {
+            // Если пул закончился - расширяем
+            Debug.LogWarning("Пул сегментов закончился, расширяем...");
+            GameObject newSegment = Instantiate(roadSegmentPrefab, transform);
+            newSegment.SetActive(false);
+            roadPool.Add(newSegment);
+            segment = newSegment;
+        }
 
         segment.transform.position = new Vector3(0, 0, lastSpawnZ);
         segment.SetActive(true);
@@ -93,39 +112,26 @@ public class RoadManager : MonoBehaviour
 
     void GenerateObstacles(GameObject segment)
     {
-        // Массив для отслеживания занятых полос в этом сегменте
         bool[] lanesOccupied = new bool[3];
         bool hasBigObstacle = false;
 
-        // Сначала проверяем, не пытаемся ли мы заблокировать все полосы
         for (int lane = 0; lane < 3; lane++)
         {
             if (Random.value < obstacleChance)
             {
                 bool isBig = Random.value < 0.3f;
 
-                // Если это большое препятствие
                 if (isBig)
                 {
-                    // Проверяем, не будет ли оно блокировать единственный проход
-                    if (hasBigObstacle)
-                    {
-                        // Уже есть большое препятствие в этом сегменте - пропускаем
-                        continue;
-                    }
+                    if (hasBigObstacle) continue;
 
-                    // Проверяем, не займёт ли оно все полосы
                     int occupiedCount = 0;
                     for (int i = 0; i < 3; i++)
                     {
                         if (lanesOccupied[i]) occupiedCount++;
                     }
 
-                    // Если осталось только 1 свободная полоса - не ставим большое
-                    if (occupiedCount >= 2)
-                    {
-                        continue;
-                    }
+                    if (occupiedCount >= 2) continue;
 
                     hasBigObstacle = true;
                     lanesOccupied[lane] = true;
@@ -133,7 +139,6 @@ public class RoadManager : MonoBehaviour
                 }
                 else
                 {
-                    // Маленькое препятствие можно ставить, если полоса свободна
                     if (!lanesOccupied[lane])
                     {
                         lanesOccupied[lane] = true;
